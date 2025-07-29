@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> 66e437b94aba202254631a9a1900cfab18337553
 An employee task management web application that supports role-based login (admin and employee) and provides features like task creation, updating, marking as completed/failed, and viewing task statistics.
 
 ## Live Preview
