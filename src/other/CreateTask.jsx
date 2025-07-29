@@ -13,6 +13,8 @@ const CreateTask = () => {
 
   const [formData, setFormData] = useState(initialState)
   const [userData, setUserData] = useContext(AuthContext)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [suggestions, setSuggestions] = useState([])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -20,6 +22,31 @@ const CreateTask = () => {
       ...prev,
       [name]: value
     }))
+
+    // Handle employee name suggestions
+    if (name === 'assignTo') {
+      if (value.trim() === '') {
+        setShowSuggestions(false)
+        setSuggestions([])
+      } else {
+        const filteredEmployees = userData.filter(emp => 
+          emp.firstName.toLowerCase().includes(value.toLowerCase()) ||
+          emp.lastName?.toLowerCase().includes(value.toLowerCase()) ||
+          `${emp.firstName} ${emp.lastName || ''}`.toLowerCase().includes(value.toLowerCase())
+        )
+        setSuggestions(filteredEmployees)
+        setShowSuggestions(filteredEmployees.length > 0)
+      }
+    }
+  }
+
+  const handleSuggestionClick = (employeeName) => {
+    setFormData(prev => ({
+      ...prev,
+      assignTo: employeeName
+    }))
+    setShowSuggestions(false)
+    setSuggestions([])
   }
 
   const createNewTask = () => ({
@@ -60,6 +87,8 @@ const CreateTask = () => {
       setUserData(updatedData)
       showSuccessToast('Task created successfully!')
       setFormData(initialState)
+      setShowSuggestions(false)
+      setSuggestions([])
     } catch (error) {
       showErrorToast('Failed to create task. Please try again.')
     }
@@ -93,7 +122,7 @@ const CreateTask = () => {
               required
             />
           </div>
-          <div className='mb-4'>
+          <div className='mb-4 relative'>
             <label className='block text-sm font-medium text-gray-300 mb-1'>Assign To</label>
             <input
               name="assignTo"
@@ -101,9 +130,26 @@ const CreateTask = () => {
               onChange={handleInputChange}
               className='w-4/5 px-4 py-2 rounded-lg border border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all'
               type="text"
-              placeholder='employee name'
+              placeholder='Start typing employee name...'
               required
             />
+            {/* Employee Suggestions Dropdown */}
+            {showSuggestions && (
+              <div className='absolute top-full left-0 w-4/5 max-h-48 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50'>
+                {suggestions.map((employee, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleSuggestionClick(employee.firstName)}
+                    className='px-4 py-2 hover:bg-gray-700 cursor-pointer transition-colors border-b border-gray-600 last:border-b-0'
+                  >
+                    <div className='text-gray-200 font-medium'>{employee.firstName}</div>
+                    {employee.lastName && (
+                      <div className='text-gray-400 text-sm'>{employee.lastName}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className='mb-4'>
             <label className='block text-sm font-medium text-gray-300 mb-1'>Category</label>
